@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data/minio:/data
+
+  loki:
+    image: grafana/loki:3.1.1
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/loki-config.yaml:/etc/loki/config.yaml
+      - ./data/loki:/loki
+    command: -config.file=/etc/loki/config.yaml
+
+  promtail:
+    image: grafana/promtail:3.1.1
+    container_name: promtail
+    volumes:
+      - ./config/promtail-config.yaml:/etc/promtail/config.yaml
+      - ./logs:/var/log/mock
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+
+  mock-service:
+    build: ./mock-service
+    container_name: mock-service
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - promtail
+
+networks:
+  default:
+    name: observability-net

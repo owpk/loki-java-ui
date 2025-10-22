@@ -1,0 +1,5 @@
+loki:
+  base-url: http://localhost:3100
+  query-path: /loki/api/v1/query_range
+server:
+  port: 8080

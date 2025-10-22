@@ -1,0 +1,38 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: mock-service-json
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: mock-service
+          service: mock-service
+          __path__: /var/log/mock/*.json
+
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: '"@timestamp"'
+            level: "level"
+            thread: "thread_name"
+            logger: "logger_name"
+            message: "message"
+            app: "app"
+            context: "context"
+
+      - labels:
+          level:
+          thread:
+          logger:
+          app:
+          message:
+          context:

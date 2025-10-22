@@ -1,0 +1,33 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: mock-service-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: mock-service
+          service: mock-service
+          __path__: /var/log/mock/*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?P<level>\w+)\s+(?P<pid>\d+)\s+---\s+\[(?P<context>[^\]]+)\]\s+\[\s*(?P<thread>[^\]]+)\]\s+(?P<logger>[^\s]+)\s+:\s+(?P<message>.*)$'
+
+      - labels:
+          level:
+          thread:
+          logger:
+          context:
+
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
