@@ -1,6 +1,6 @@
-package owpk.jloki.core.moddsl.expresson;
+package owpk.jloki.core.dsl.expresson;
 
 public interface Expression {
-    String render();
+    String eval();
     String pretty(int indent);
 }

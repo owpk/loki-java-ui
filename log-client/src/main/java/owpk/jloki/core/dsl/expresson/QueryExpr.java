@@ -1,9 +1,9 @@
-package owpk.jloki.core.moddsl.expresson;
+package owpk.jloki.core.dsl.expresson;
 
 public record QueryExpr(String q) implements Expression {
     
     @Override
-    public String render() {
+    public String eval() {
         return q;
     }
 

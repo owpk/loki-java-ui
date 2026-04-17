@@ -153,6 +153,15 @@ public class LokiTemplate {
                 });
     }
 
+    /**
+     * @see owpk.jloki.core.dsl.LokiQueryDSL to build loki tail request
+     * Example: tailLogSteam(LokiQueryDsl.tailRequest()...)
+     * 
+     * @param <T> - loki object
+     * @param request - loki tail request
+     * @param ref - mapper
+     * @return - stream of loki entites
+     */
     public <T> Flux<LokiTailResponse<T>> tailLogsStream(
             LokiTailRequest request,
             TypeReference<LokiTailResponse<T>> ref) {

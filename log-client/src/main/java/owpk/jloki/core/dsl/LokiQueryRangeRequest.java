@@ -4,7 +4,9 @@ import java.util.function.Consumer;
 
 import lombok.Builder;
 import lombok.ToString;
-import owpk.jloki.core.dsl.LokiQueryExpression.Expression;
+import owpk.jloki.core.dsl.expresson.Expression;
+import owpk.jloki.core.dsl.utils.LokiQueryBuilder;
+import owpk.jloki.core.dsl.utils.LokiUrlCompatable;
 
 @Builder
 @ToString
@@ -13,20 +15,15 @@ public class LokiQueryRangeRequest implements LokiUrlCompatable {
     public static class LokiQueryRangeRequestBuilder {
         private Expression queryExpression;
 
-        public LokiQueryRangeRequestBuilder queryExpression(Consumer<LokiQueryExpression.Builder> consumer) {
-            var queryBuilder = LokiQueryExpression.builder();
+        public LokiQueryRangeRequestBuilder queryExpression(Consumer<LokiQueryBuilder> consumer) {
+            var queryBuilder = new LokiQueryBuilder();
             consumer.accept(queryBuilder);
-            this.queryExpression = queryBuilder.asExpr();
+            this.queryExpression = queryBuilder.build();
             return this;
         }
 
         public LokiQueryRangeRequestBuilder queryExpression(Expression req) {
             this.queryExpression = req;
-            return this;
-        }
-
-        public LokiQueryRangeRequestBuilder queryExpression(LokiQueryExpression.Builder req) {
-            this.queryExpression = req.asExpr();
             return this;
         }
     }

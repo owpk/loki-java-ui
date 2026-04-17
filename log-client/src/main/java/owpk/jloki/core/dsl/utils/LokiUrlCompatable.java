@@ -1,4 +1,4 @@
-package owpk.jloki.core.dsl;
+package owpk.jloki.core.dsl.utils;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import owpk.jloki.core.dsl.LokiQueryExpression.Expression;
+import owpk.jloki.core.dsl.expresson.Expression;
 
 public interface LokiUrlCompatable {
 

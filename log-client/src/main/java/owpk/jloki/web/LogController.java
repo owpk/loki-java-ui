@@ -17,7 +17,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import owpk.jloki.core.LokiTemplate;
-import owpk.jloki.core.dsl.LokiTailRequest;
+import owpk.jloki.core.dsl.LokiQueryDSL;
+import owpk.jloki.core.dsl.LokiQueryDSL.Regex;
 import owpk.jloki.core.model.LogFilterStreamRequest;
 import owpk.jloki.web.dto.LogEvent;
 import owpk.jloki.web.utils.MappingUtils;
@@ -47,13 +48,14 @@ public class LogController {
 
         var labelQuery = MappingUtils.toLabelQuery(filter.filters());
 
-        var lokiTailRequest = LokiTailRequest.builder()
+        var lokiTailRequest = LokiQueryDSL.tailRequest()
                 .delayFor(delaySec)
                 .limit(filter.limit())
                 .queryExpression(expr -> expr
-                        .labelQuery(labelQuery)
-                        .pipe().query("json")
-                        .log());
+                        .label(labelQuery)
+                        .filter(Regex.REG_CONTAINS, ".*created")
+                        .json()
+                        .log((expt, logger) -> logger.info(expt)));
 
         if (filter.start() != null)
             lokiTailRequest.start(Instant.ofEpochMilli(filter.start()));

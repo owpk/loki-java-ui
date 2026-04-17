@@ -1,10 +1,14 @@
-package owpk.jloki.core.moddsl.expresson;
+package owpk.jloki.core.dsl.expresson;
 
 public record FnExpr(String fn, Expression inner) implements Expression {
 
+    public static String fn(String fnName, String body) {
+        return "%s (%s)".formatted(fnName, body);
+    }
+
     @Override
-    public String render() {
-        return fn + "(" + inner.render() + ")";
+    public String eval() {
+        return fn(fn, inner.eval());
     }
 
     @Override

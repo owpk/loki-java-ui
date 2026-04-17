@@ -1,7 +1,7 @@
-package owpk.jloki.core.moddsl.expresson;
+package owpk.jloki.core.dsl.expresson;
 
-import owpk.jloki.core.moddsl.LokiQueryDSL.Filter;
-import owpk.jloki.core.moddsl.LokiQueryDSL.Regex;
+import owpk.jloki.core.dsl.LokiQueryDSL.Filter;
+import owpk.jloki.core.dsl.LokiQueryDSL.Regex;
 
 public record FilterExpr(String op, String value) implements Expression {
 
@@ -14,12 +14,12 @@ public record FilterExpr(String op, String value) implements Expression {
     }
 
     @Override
-    public String render() {
-        return op + " \"" + value + "\"";
+    public String eval() {
+        return "%s \"%s\"".formatted(op, value);
     }
 
     @Override
     public String pretty(int indent) {
-        return "    ".repeat(indent) + " " + op + " \"" + value + "\"";
+        return "    ".repeat(indent) + eval();
     }
 }

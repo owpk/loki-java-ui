@@ -3,7 +3,9 @@ package owpk.jloki.core.dsl;
 import java.util.function.Consumer;
 
 import lombok.Builder;
-import owpk.jloki.core.dsl.LokiQueryExpression.Expression;
+import owpk.jloki.core.dsl.expresson.Expression;
+import owpk.jloki.core.dsl.utils.LokiQueryBuilder;
+import owpk.jloki.core.dsl.utils.LokiUrlCompatable;
 
 @Builder
 public class LokiQueryRequest implements LokiUrlCompatable {
@@ -11,20 +13,15 @@ public class LokiQueryRequest implements LokiUrlCompatable {
     public static class LokiQueryRequestBuilder {
         private Expression queryExpression;
 
-        public LokiQueryRequestBuilder queryExpression(Consumer<LokiQueryExpression.Builder> consumer) {
-            var queryBuilder = LokiQueryExpression.builder();
+        public LokiQueryRequestBuilder queryExpression(Consumer<LokiQueryBuilder> consumer) {
+            var queryBuilder = new LokiQueryBuilder();
             consumer.accept(queryBuilder);
-            this.queryExpression = queryBuilder.asExpr();
+            this.queryExpression = queryBuilder.build();
             return this;
         }
 
         public LokiQueryRequestBuilder queryExpression(Expression req) {
             this.queryExpression = req;
-            return this;
-        }
-
-        public LokiQueryRequestBuilder queryExpression(LokiQueryExpression.Builder req) {
-            this.queryExpression = req.asExpr();
             return this;
         }
     }

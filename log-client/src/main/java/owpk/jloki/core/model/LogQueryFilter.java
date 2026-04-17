@@ -1,7 +1,7 @@
 package owpk.jloki.core.model;
 
 import lombok.Builder;
-import owpk.jloki.core.dsl.LokiQueryExpression.LabelMatcher;
+import owpk.jloki.core.dsl.LokiQueryDSL.LabelMatcher;
 
 @Builder
 public record LogQueryFilter(

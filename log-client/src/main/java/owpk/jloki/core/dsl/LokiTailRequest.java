@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.util.function.Consumer;
 
 import lombok.Builder;
-import owpk.jloki.core.dsl.LokiQueryExpression.Expression;
+import owpk.jloki.core.dsl.expresson.Expression;
+import owpk.jloki.core.dsl.utils.LokiQueryBuilder;
+import owpk.jloki.core.dsl.utils.LokiUrlCompatable;
 
 @Builder
 public class LokiTailRequest implements LokiUrlCompatable {
@@ -12,10 +14,10 @@ public class LokiTailRequest implements LokiUrlCompatable {
     public static class LokiTailRequestBuilder {
         private Expression queryExpression;
 
-        public LokiTailRequestBuilder queryExpression(Consumer<LokiQueryExpression.Builder> consumer) {
-            var queryBuilder = LokiQueryExpression.builder();
+        public LokiTailRequestBuilder queryExpression(Consumer<LokiQueryBuilder> consumer) {
+            var queryBuilder = new LokiQueryBuilder();
             consumer.accept(queryBuilder);
-            this.queryExpression = queryBuilder.asExpr();
+            this.queryExpression = queryBuilder.build();
             return this;
         }
 

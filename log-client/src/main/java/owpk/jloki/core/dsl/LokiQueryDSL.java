@@ -1,4 +1,4 @@
-package owpk.jloki.core.moddsl;
+package owpk.jloki.core.dsl;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -8,16 +8,26 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
-import owpk.jloki.core.moddsl.expresson.LokiQuery;
-import owpk.jloki.core.moddsl.steps.FnStep;
+import owpk.jloki.core.dsl.LokiQueryRangeRequest.LokiQueryRangeRequestBuilder;
+import owpk.jloki.core.dsl.LokiQueryRequest.LokiQueryRequestBuilder;
+import owpk.jloki.core.dsl.LokiTailRequest.LokiTailRequestBuilder;
+import owpk.jloki.core.dsl.expresson.FnExpr;
 
 public final class LokiQueryDSL {
 
     private LokiQueryDSL() {
     }
 
-    public static LokiQueryBuilder query() {
-        return new LokiQueryBuilder();
+    public static LokiTailRequestBuilder tailRequest() {
+        return LokiTailRequest.builder();
+    }
+
+    public static LokiQueryRangeRequestBuilder queryRangeRequest() {
+        return LokiQueryRangeRequest.builder();
+    }
+
+    public static LokiQueryRequestBuilder queryRequest() {
+        return LokiQueryRequest.builder();
     }
 
     public enum Regex {
@@ -111,7 +121,7 @@ public final class LokiQueryDSL {
         }
 
         Fn(String name) {
-            this(name, FnStep::fn);
+            this(name, FnExpr::fn);
         }
 
         public BiFunction<String, String, String> asFunction() {
@@ -122,17 +132,4 @@ public final class LokiQueryDSL {
             return query -> call.apply(functionName, query);
         }
     }
-
-    public static void main(String[] args) {
-        LokiQuery query = new LokiQueryBuilder()
-                .label("app", "api")
-                .label("env", "prod")
-                .filter(Filter.CONTAINS, "error")
-                .regex("timeout.*")
-                .json()
-                .build();
-        System.out.println(query.pretty());
-        System.out.println(query.render());
-    }
-
 }
