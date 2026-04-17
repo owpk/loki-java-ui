@@ -1,17 +1,18 @@
 package owpk.jloki.core.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import owpk.jloki.core.dsl.LokiQueryExpression.LabelMatcher;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class LogQueryFilter {
-    private String field; // например "message"
-    private String operator; // =, !=, =~, !~
-    private String value; // regex или строка
+public record LogQueryFilter(
+        String field, // например "message"
+        String operator, // =, !=, =~, !~
+        String value // regex или строка
+) {
 
+    public LogQueryFilter {
+        if (field != null && value != null && operator == null) {
+            operator = LabelMatcher.EQ.getValue();
+        }
+    }
 }

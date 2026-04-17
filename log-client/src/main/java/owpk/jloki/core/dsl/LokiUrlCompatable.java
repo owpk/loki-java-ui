@@ -14,20 +14,20 @@ public interface LokiUrlCompatable {
     Consumer<StringBuilder> buildUrl();
 
     default URI toURI() {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         buildUrl().accept(sb);
         return URI.create(sb.toString());
     }
 
     default Function<String, URI> toURIFn() {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         buildUrl().accept(sb);
         return baseUrl -> URI.create(baseUrl + sb.toString());
     }
 
     default void append(StringBuilder sb, String key, String value) {
         this.append(sb, key, value, false);
-    };
+    }
 
     default void append(StringBuilder sb, String key, String value, boolean encode) {
         if (value == null || value.isEmpty())
@@ -41,7 +41,7 @@ public interface LokiUrlCompatable {
         sb.append(key)
                 .append('=')
                 .append(encode ? urlEncode(value) : value);
-    };
+    }
 
     default String urlEncode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
@@ -52,7 +52,7 @@ public interface LokiUrlCompatable {
             return;
 
         append(sb, key, value.toEpochMilli());
-    };
+    }
 
     default void append(StringBuilder sb, String key, Number value) {
         if (value == null)
@@ -66,7 +66,7 @@ public interface LokiUrlCompatable {
             return;
 
         append(sb, key, urlEncode(value.eval()));
-    };
+    }
 
     default String instantToEpochNanos(Instant t) {
         if (t == null)

@@ -1,11 +1,11 @@
 package owpk.jloki.core;
 
 import java.net.URI;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -14,6 +14,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import owpk.jloki.core.advisor.LokiExecutionContext;
+import owpk.jloki.core.advisor.LokiStreamAdvisor;
+import owpk.jloki.core.advisor.LokiStreamPipeline;
 import owpk.jloki.core.dsl.LokiQueryRangeRequest;
 import owpk.jloki.core.dsl.LokiQueryRangeRequest.LokiQueryRangeRequestBuilder;
 import owpk.jloki.core.dsl.LokiQueryRequest;
@@ -21,7 +24,6 @@ import owpk.jloki.core.dsl.LokiTailRequest;
 import owpk.jloki.core.model.LokiTailResponse;
 import owpk.jloki.core.model.PushLogRequest;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
 /**
@@ -38,7 +40,7 @@ import reactor.core.publisher.Mono;
  * невозможно.
  * 
  * Производительность: Удаление логов — это ресурсоёмкая операция. Loki не
- * предназначен для частой выборочной чистки. Если вам нужно часто удалять логи,
+ * предназначен для частой выборочной чистки. Если нужно часто удалять логи,
  * возможно, стоит пересмотреть, какие данные вы вообще отправляете в Loki.
  * 
  * Индексы и хранилище: Удаление логов работает только с определенными типами
@@ -55,17 +57,36 @@ import reactor.core.publisher.Mono;
  * 
  * @author Vyacheslav Vorobev
  */
-@Component
 @Slf4j
 public class LokiTemplate {
     private final ObjectMapper objectMapper;
     private final WebClient webClient;
     private final LokiSettingsProvider settingsProvider;
+    private final ReactorNettyWebSocketClient webSocketClient;
+    private final LokiStreamPipeline lokiStreamPipeline = new LokiStreamPipeline();
 
-    public LokiTemplate(ObjectMapper objectMapper, LokiSettingsProvider settingsProvider) {
+    public LokiTemplate(
+            ReactorNettyWebSocketClient webSocketClient,
+            WebClient webClient,
+            ObjectMapper objectMapper,
+            String lokiBaseUrl,
+            List<LokiStreamAdvisor> advisors) {
+        this(webSocketClient, webClient, objectMapper,
+                new DefaultLokiSettingsProvider(new LokiTemplateSettings(lokiBaseUrl)),
+                advisors);
+    }
+
+    public LokiTemplate(
+            ReactorNettyWebSocketClient webSocketClient,
+            WebClient webClient,
+            ObjectMapper objectMapper,
+            LokiSettingsProvider settingsProvider,
+            List<LokiStreamAdvisor> advisors) {
+        this.webSocketClient = webSocketClient;
         this.objectMapper = objectMapper;
         this.settingsProvider = settingsProvider;
-        this.webClient = WebClient.builder().baseUrl(settingsProvider.provide().lokiBaseUrl()).build();
+        this.webClient = webClient;
+        advisors.forEach(lokiStreamPipeline::registerAdvisor);
     }
 
     public Mono<Void> push(PushLogRequest log) {
@@ -136,30 +157,47 @@ public class LokiTemplate {
             LokiTailRequest request,
             TypeReference<LokiTailResponse<T>> ref) {
         return Flux.defer(() -> {
-            var client = new ReactorNettyWebSocketClient();
 
-            var uri = request.toURIFn().apply(st().lokiBaseUrl()); // сделай ws:// тут
+            var uri = request.toURIFn()
+                    .apply(st().lokiBaseUrl() + st().tailPath());
+
             logUri(uri);
 
-            return Flux.<LokiTailResponse<T>>create(sink -> {
+            var raw = parseStream(webSocketTextStream(uri), ref);
+            return lokiStreamPipeline.executeFlux(uri, raw, new LokiExecutionContext());
+        });
+    }
 
-                client.execute(uri, session -> session.receive()
-                        .map(WebSocketMessage::getPayloadAsText)
-                        .flatMap(payload -> {
-                            try {
-                                return Mono.just(objectMapper.readValue(payload, ref));
-                            } catch (Exception e) {
-                                log.error("Failed to parse message: {}", payload, e);
-                                return Mono.empty();
-                            }
-                        })
+    private <T> Flux<T> parseStream(Flux<WebSocketMessage> stream, TypeReference<T> ref) {
+        return stream.flatMap(payload -> {
+            try {
+                var asString = payload.getPayloadAsText();
+                var parsed = objectMapper.readValue(asString, ref);
+                return Mono.just(parsed);
+            } catch (Exception e) {
+                log.error("Failed to parse: {}", payload, e);
+                return Mono.empty();
+            }
+        });
+    }
+
+    private Flux<WebSocketMessage> webSocketTextStream(URI uri) {
+        return Flux.<WebSocketMessage>defer(() -> {
+            var client = webSocketClient;
+
+            return Flux.create(sink -> {
+                var raw = client.execute(uri, session -> session.receive()
                         .doOnNext(sink::next)
                         .doOnError(sink::error)
                         .doOnComplete(sink::complete)
-                        .then()).subscribe();
-
-            }, FluxSink.OverflowStrategy.BUFFER);
+                        .then());
+                        
+                var disposable = raw.subscribe();
+                sink.onCancel(disposable::dispose);
+                sink.onDispose(disposable::dispose);
+            });
         });
+
     }
 
     private void logUri(URI uri) {

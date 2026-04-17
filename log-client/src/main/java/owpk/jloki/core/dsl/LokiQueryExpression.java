@@ -74,7 +74,7 @@ public final class LokiQueryExpression {
         }
 
         public Builder query(String query) {
-            if (sb.length() > 0)
+            if (!sb.isEmpty())
                 sb.append(" ");
             sb.append(query);
             return this;
