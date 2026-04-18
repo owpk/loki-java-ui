@@ -13,11 +13,11 @@ import owpk.jloki.core.utils.MappingUtils;
 import reactor.core.publisher.Flux;
 import tools.jackson.core.type.TypeReference;
 
-public class DefaultStreamingService implements StreamingService<Object> {
+public class DefaultLokiService implements StreamingService<Object> {
 
     private final LokiTemplate lokiTemplate;
 
-    public DefaultStreamingService(LokiTemplate lokiTemplate) {
+    public DefaultLokiService(LokiTemplate lokiTemplate) {
         this.lokiTemplate = lokiTemplate;
     }
 
