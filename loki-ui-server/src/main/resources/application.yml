@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+loki:
+  url: http://localhost:3100
+  api-path: /api/loki
+  ui:
+    allowed-origins: http://localhost:5173
+
+spring:
+  application:
+    name: loki-ui-server
