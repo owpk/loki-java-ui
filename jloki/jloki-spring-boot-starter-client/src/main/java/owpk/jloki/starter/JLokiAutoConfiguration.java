@@ -1,7 +1,9 @@
 package owpk.jloki.starter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -11,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import owpk.jloki.core.LokiTemplate;
 import owpk.jloki.core.WebSocketClient;
+import owpk.jloki.core.advisor.LokiStreamAdvisor;
 import owpk.jloki.core.service.DefaultLokiService;
 import owpk.jloki.core.service.QueryService;
 import owpk.jloki.core.service.StreamingService;
@@ -61,8 +64,10 @@ public class JLokiAutoConfiguration {
             WebSocketClient webSocketClient,
             WebClient webClient,
             ObjectMapper objectMapper,
-            LokiSettingsProvider settingsProvider) {
-        return new LokiTemplate(webSocketClient, webClient, objectMapper, settingsProvider, List.of());
+            LokiSettingsProvider settingsProvider,
+            ObjectProvider<LokiStreamAdvisor> advisors) {
+        return new LokiTemplate(webSocketClient, webClient, objectMapper, settingsProvider,
+                advisors.stream().collect(Collectors.toList()));
     }
 
     @Bean
