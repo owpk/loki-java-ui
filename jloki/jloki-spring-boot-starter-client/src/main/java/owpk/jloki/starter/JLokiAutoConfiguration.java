@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import owpk.jloki.core.LokiTemplate;
 import owpk.jloki.core.WebSocketClient;
 import owpk.jloki.core.service.DefaultLokiService;
+import owpk.jloki.core.service.QueryService;
 import owpk.jloki.core.service.StreamingService;
 import owpk.jloki.core.settings.DefaultLokiSettingsProvider;
 import owpk.jloki.core.settings.LokiSettingsProvider;
@@ -65,8 +66,19 @@ public class JLokiAutoConfiguration {
     }
 
     @Bean
+    DefaultLokiService lokiService(LokiTemplate lokiTemplate) {
+        return new DefaultLokiService(lokiTemplate);
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     StreamingService<Object> streamingService(LokiTemplate lokiTemplate) {
-        return new DefaultLokiService(lokiTemplate);
+        return lokiService(lokiTemplate);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    QueryService<Object> queryService(LokiTemplate lokiTemplate) {
+        return lokiService(lokiTemplate);
     }
 }

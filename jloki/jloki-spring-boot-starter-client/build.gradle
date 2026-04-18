@@ -15,13 +15,16 @@ jar {
 dependencies {
     api project(':jloki-core')
 
-    // Spring Boot для автоконфигурации
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
 
-    // WebClient для HTTP запросов
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
-    // Reactor Netty для WebSocket
     implementation 'io.projectreactor.netty:reactor-netty-http:1.2.7'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
 }

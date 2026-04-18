@@ -9,6 +9,7 @@ public class JLokiProperties {
     private String queryRangePath = "/loki/api/v1/query_range";
     private String tailPath = "/loki/api/v1/tail";
     private String pushPath = "/loki/api/v1/push";
+    private String apiPath = "/api/loki";
 
     public String getBaseUrl() {
         return baseUrl;
@@ -48,5 +49,13 @@ public class JLokiProperties {
 
     public void setPushPath(String pushPath) {
         this.pushPath = pushPath;
+    }
+
+    public String getApiPath() {
+        return apiPath;
+    }
+
+    public void setApiPath(String apiPath) {
+        this.apiPath = apiPath;
     }
 }

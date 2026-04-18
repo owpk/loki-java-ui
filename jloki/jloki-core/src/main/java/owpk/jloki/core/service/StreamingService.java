@@ -1,5 +1,8 @@
 package owpk.jloki.core.service;
 
+import org.jspecify.annotations.NonNull;
+
+import owpk.jloki.core.dsl.LokiTailRequest;
 import owpk.jloki.core.model.LogFilterStreamRequest;
 import reactor.core.publisher.Flux;
 
@@ -14,7 +17,8 @@ public interface StreamingService<T> {
      *
      * @param filter  фильтры для запроса
      * @param delaySec задержка в секундах для ускорения логгеров
-     * @return поток LogEvent
      */
-    Flux<T> stream(LogFilterStreamRequest filter, int delaySec);
+    Flux<T> stream(@NonNull LogFilterStreamRequest filter, int delaySec);
+
+    Flux<T> stream(@NonNull LokiTailRequest request);
 }
