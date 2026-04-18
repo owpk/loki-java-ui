@@ -15,10 +15,28 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(25)
+        }
+        withSourcesJar()
+    }
+
+    dependencies {
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
         }
     }
 }

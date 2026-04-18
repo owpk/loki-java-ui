@@ -14,19 +14,17 @@ import owpk.jloki.core.dsl.LokiQueryRequest;
 import owpk.jloki.core.model.LogFilterStreamRequest;
 import owpk.jloki.core.service.QueryService;
 import owpk.jloki.core.service.StreamingService;
-import owpk.jloki.starter.JLokiProperties;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("#{jLokiProperties.apiPath}")
+@RequestMapping("${loki.api-path:/api/loki}")
 @RequiredArgsConstructor
 @Slf4j
 public class LokiController {
 
     private final StreamingService<Object> logStreamingService;
     private final QueryService<Object> queryService;
-    private final JLokiProperties jLokiProperties;
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Object> streamLogs(

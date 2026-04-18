@@ -2,4 +2,4 @@ rootProject.name = 'jloki'
 
 include 'jloki-core'
 include 'jloki-spring-boot-starter-client'
-include 'jloki-web'
+include 'jloki-spring-boot-starter-web'

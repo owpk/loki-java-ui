@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+    id 'io.spring.dependency-management'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:4.0.5"
+    }
+}
+
+dependencies {
+    api project(':jloki-spring-boot-starter-client')
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    compileOnly 'org.projectlombok:lombok:1.18.44'
+    annotationProcessor 'org.projectlombok:lombok:1.18.44'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
