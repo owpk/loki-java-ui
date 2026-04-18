@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webclient:4.0.5'
+
+    implementation 'tools.jackson.core:jackson-databind:3.0.0'
+    implementation 'org.slf4j:slf4j-api:2.0.13'
+    compileOnly 'org.projectlombok:lombok:1.18.44'
+    annotationProcessor 'org.projectlombok:lombok:1.18.44'
+
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'io.projectreactor:reactor-test:3.6.6'
+    testImplementation 'org.slf4j:slf4j-simple:2.0.13'
+}
