@@ -5,7 +5,6 @@ import reactor.core.publisher.Sinks;
 
 public class AnalysisEventBus {
 
-    // onBackpressureBuffer(capacity, autoCancel=false) — не отменяет upstream при отсутствии подписчиков
     private final Sinks.Many<LogAnalysisResult> sink = Sinks.many()
             .multicast()
             .onBackpressureBuffer(256, false);
