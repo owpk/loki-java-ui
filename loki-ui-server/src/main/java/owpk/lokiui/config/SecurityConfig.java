@@ -6,13 +6,12 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-// Extension point: replace permitAll() with JWT/OAuth2 config when auth is needed.
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll())
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)

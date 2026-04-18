@@ -1,6 +1,5 @@
 package owpk.jloki.starter;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -10,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 
 import owpk.jloki.core.LokiTemplate;
 import owpk.jloki.core.WebSocketClient;
@@ -20,6 +20,9 @@ import owpk.jloki.core.service.StreamingService;
 import owpk.jloki.core.settings.DefaultLokiSettingsProvider;
 import owpk.jloki.core.settings.LokiSettingsProvider;
 import owpk.jloki.core.settings.LokiTemplateSettings;
+import reactor.core.publisher.Flux;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.WebsocketClientSpec;
 import tools.jackson.databind.ObjectMapper;
 
 @AutoConfiguration
@@ -30,7 +33,20 @@ public class JLokiAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     WebSocketClient webSocketClient() {
-        return new WebSocketClientFactory().createReactorNettyClient();
+        var spec = WebsocketClientSpec.builder().maxFramePayloadLength(10048576);
+        var httpClient = HttpClient.create();
+        var ws = new ReactorNettyWebSocketClient(httpClient, () -> spec);
+        return uri -> Flux.create(sink -> {
+                var raw = ws.execute(uri, session -> session.receive()
+                        .doOnNext(it -> sink.next(it.getPayloadAsText()))
+                        .doOnError(sink::error)
+                        .doOnComplete(sink::complete)
+                        .then());
+                        
+                var disposable = raw.subscribe();
+                sink.onCancel(disposable::dispose);
+                sink.onDispose(disposable::dispose);
+            });
     }
 
     @Bean
@@ -53,8 +69,7 @@ public class JLokiAutoConfiguration {
                 properties.getQueryRangePath(),
                 properties.getQueryPath(),
                 properties.getTailPath(),
-                properties.getPushPath()
-        );
+                properties.getPushPath());
         return new DefaultLokiSettingsProvider(settings);
     }
 

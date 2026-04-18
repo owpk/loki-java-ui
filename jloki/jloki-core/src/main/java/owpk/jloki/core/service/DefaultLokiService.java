@@ -43,7 +43,9 @@ public class DefaultLokiService implements StreamingService<Object>, QueryServic
                 .limit(local.limit())
                 .queryExpression(expr -> expr
                         .label(labelQuery)
-                        .json());
+                        .json()
+                        .log((raw, log) -> log.info("Loki stream request: {}", raw))
+                    );
 
         if (local.start() != null)
             lokiTailRequest.start(Instant.ofEpochMilli(local.start()));

@@ -29,7 +29,7 @@ public class LokiController {
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Object> streamLogs(
             @RequestBody LogFilterStreamRequest filter,
-            @RequestParam(required = false, defaultValue = "2") int delaySec) {
+            @RequestParam(required = false, defaultValue = "2") Integer delaySec) {
         return logStreamingService.stream(filter, delaySec);
     }
 
