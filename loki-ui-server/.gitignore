@@ -5,3 +5,6 @@
 *.ipr
 build/
 out/
+.settings/
+.project
+
