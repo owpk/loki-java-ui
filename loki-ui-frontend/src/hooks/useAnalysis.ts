@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { streamAnalysis } from '../api/analysis'
 import type { LogAnalysisResult } from '../types'
 
@@ -20,6 +20,12 @@ export function useAnalysis() {
   const disconnect = useCallback(() => {
     esRef.current?.close()
     setConnected(false)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      esRef.current?.close()
+    }
   }, [])
 
   return { results, connected, connect, disconnect }
