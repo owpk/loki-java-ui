@@ -19,20 +19,47 @@ scrape_configs:
           __path__: /var/log/mock/*.json
 
     pipeline_stages:
+
+      # 1. Парсим JSON
       - json:
           expressions:
             timestamp: '"@timestamp"'
-            level: "level"
-            thread: "thread_name"
-            logger: "logger_name"
-            message: "message"
-            app: "app"
-            context: "context"
+            level: level
+            thread: thread_name
+            logger: logger_name
+            message: message
+            app: app
+            context: context
 
+      # 2. timestamp из лога
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+
+      # 3. labels (минимально нужные)
       - labels:
           level:
-          thread:
-          logger:
           app:
-          message:
-          context:
+          logger:
+
+      # 4. нормализация level
+      - template:
+          source: level
+          template: '{{ ToUpper .Value }}'
+
+      # 5. формируем ЧИСТЫЙ JSON
+      - template:
+          source: log
+          template: |
+            {
+              "ts":"{{ .timestamp }}",
+              "level":"{{ .level }}",
+              "app":"{{ .app }}",
+              "thread":"{{ .thread }}",
+              "logger":"{{ .logger }}",
+              "msg":"{{ .message }}"
+            }
+
+      # 6. финальный output
+      - output:
+          source: log

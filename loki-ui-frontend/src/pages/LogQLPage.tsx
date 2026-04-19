@@ -44,7 +44,11 @@ export function LogQLPage() {
 
   const logs: LogEvent[] =
     data?.data.result.flatMap((r) =>
-      r.values.map(([ts, line]) => ({ timestamp: ts, line, labels: r.stream })),
+      r.values.map(([ts, line]) => ({
+        ...r.stream,
+        timestamp: ts,
+        line,
+      })),
     ) ?? []
 
   return (

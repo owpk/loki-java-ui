@@ -1,4 +1,4 @@
-import { Drawer, Text, Badge, Group, Stack, Code } from '@mantine/core'
+import { Drawer, Text, Stack, Code } from '@mantine/core'
 import type { LogEvent } from '../types'
 
 interface Props {
@@ -11,16 +11,12 @@ export function LogEntry({ log, onClose }: Props) {
     <Drawer opened={!!log} onClose={onClose} title="Log Entry" position="right" size="lg">
       {log && (
         <Stack>
-          <Text size="sm" c="dimmed">{log.timestamp}</Text>
+          <Text size="sm" c="dimmed">
+            {log['_timestamp'] || log['timestamp'] || new Date().toISOString()}
+          </Text>
           <Code block style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}>
-            {log.line}
+            {JSON.stringify(log, null, 2)}
           </Code>
-          <Text fw={500}>Labels</Text>
-          <Group gap="xs">
-            {Object.entries(log.labels).map(([k, v]) => (
-              <Badge key={k} variant="light">{k}={v}</Badge>
-            ))}
-          </Group>
         </Stack>
       )}
     </Drawer>

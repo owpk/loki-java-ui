@@ -4,8 +4,8 @@ import { LogTable } from '../components/LogTable'
 import type { LogEvent } from '../types'
 
 const LOGS: LogEvent[] = [
-  { timestamp: '2026-04-18T10:00:00Z', line: 'ERROR something failed', labels: { app: 'api' } },
-  { timestamp: '2026-04-18T10:01:00Z', line: 'INFO request ok', labels: { app: 'api' } },
+  { timestamp: '2026-04-18T10:00:00Z', line: 'ERROR something failed', app: 'api' },
+  { timestamp: '2026-04-18T10:01:00Z', line: 'INFO request ok', app: 'api' },
 ]
 
 function wrap(ui: React.ReactElement) {

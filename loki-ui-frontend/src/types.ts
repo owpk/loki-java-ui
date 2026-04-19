@@ -1,8 +1,6 @@
-export interface LogEvent {
-  timestamp: string
-  line: string
-  labels: Record<string, string>
-}
+// Произвольный JSON лог из stream API (после фильтрации heartbeat)
+// Также поддерживает формат от query/queryRange API (timestamp, line, labels)
+export type LogEvent = Record<string, string>
 
 export type FilterOperator = '=' | '!=' | '=~' | '!~'
 
