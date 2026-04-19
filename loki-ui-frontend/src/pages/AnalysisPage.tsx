@@ -49,7 +49,7 @@ export function AnalysisPage() {
         </Text>
       )}
       {results.map((r, i) => (
-        <AnalysisCard key={i} result={r} />
+        <AnalysisCard key={`${r.timestamp}-${r.model}`} result={r} />
       ))}
     </Stack>
   )
