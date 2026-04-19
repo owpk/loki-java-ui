@@ -41,7 +41,7 @@ export interface LokiRawQueryResponse {
   data: {
     result: Array<{
       stream: Record<string, string>
-      values: [string, string][]
+      values: string[][]
     }>
   }
 }
