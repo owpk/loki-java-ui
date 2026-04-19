@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 
 // jsdom does not implement ResizeObserver — mock it for Mantine
-global.ResizeObserver = class ResizeObserver {
+globalThis.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}
   disconnect() {}
