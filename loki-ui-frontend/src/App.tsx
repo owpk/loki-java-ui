@@ -1,4 +1,4 @@
-import { NavLink as RouterNavLink, Navigate, Route, BrowserRouter, Routes } from 'react-router-dom'
+import { Navigate, Route, BrowserRouter, Routes, useNavigate, useLocation } from 'react-router-dom'
 import { AppShell, NavLink, Stack } from '@mantine/core'
 import { StreamPage } from './pages/StreamPage'
 import { RangePage } from './pages/RangePage'
@@ -13,16 +13,19 @@ const NAV_ITEMS = [
 ]
 
 function Layout() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
   return (
     <AppShell navbar={{ width: 200, breakpoint: 'sm' }} padding="md">
       <AppShell.Navbar p="sm">
         <Stack gap="xs">
           {NAV_ITEMS.map((item) => (
-            <NavLink<typeof RouterNavLink>
+            <NavLink
               key={item.path}
-              component={RouterNavLink}
-              to={item.path}
               label={item.label}
+              active={location.pathname === item.path}
+              onClick={() => navigate(item.path)}
             />
           ))}
         </Stack>
