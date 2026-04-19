@@ -48,7 +48,7 @@ export function AnalysisPage() {
           {connected ? 'Waiting for analysis results...' : 'Connect to start receiving analysis.'}
         </Text>
       )}
-      {results.map((r, i) => (
+      {results.map((r) => (
         <AnalysisCard key={`${r.timestamp}-${r.model}`} result={r} />
       ))}
     </Stack>
