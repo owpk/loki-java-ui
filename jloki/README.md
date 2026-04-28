@@ -58,29 +58,44 @@ loki:
 
 ## Использование
 
+Все три типа запросов — `queryRequest()`, `queryRangeRequest()`, `tailRequest()` — поддерживают метод
+`queryExpression(Consumer<LokiQueryBuilder>)`, который позволяет строить LogQL-запросы через fluent DSL
+прямо внутри builder-а, без лишних переменных и boilerplate.
+
 ### Точечный запрос
 
 ```java
 @Autowired LokiTemplate lokiTemplate;
 
 var request = LokiQueryDSL.queryRequest()
-        .query(new LokiQuery(
-                new LabelSelector(List.of(new LabelEntry("app", LabelMatcher.EQ, "my-service"))),
-                List.of()))
+        .queryExpression(q -> q
+                .label("app", "my-service")
+                .label("env", "prod")
+                .filter(Filter.CONTAINS, "ERROR"))
         .limit(100)
         .build();
 
 lokiTemplate.query(request, MyResponse.class).subscribe(System.out::println);
 ```
 
+Это эквивалентно LogQL-запросу:
+```
+{app="my-service", env="prod"} |= "ERROR"
+```
+
 ### Запрос по диапазону времени
 
 ```java
-lokiTemplate.queryRange(builder -> builder
-        .query("{app=\"my-service\"}")
-        .start(Instant.now().minusSeconds(3600))
-        .end(Instant.now())
-        .limit(500),
+lokiTemplate.queryRange(
+        LokiQueryDSL.queryRangeRequest()
+                .queryExpression(q -> q
+                        .label("app", "my-service")
+                        .filter(Regex.REG_CONTAINS, "exception|error")
+                        .json())
+                .start(Instant.now().minusSeconds(3600).toString())
+                .end(Instant.now().toString())
+                .limit(500)
+                .build(),
         new ParameterizedTypeReference<MyResponse>() {})
     .subscribe(System.out::println);
 ```
@@ -89,12 +104,32 @@ lokiTemplate.queryRange(builder -> builder
 
 ```java
 var tailRequest = LokiQueryDSL.tailRequest()
-        .query("{app=\"my-service\"}")
+        .queryExpression(q -> q
+                .label("app", "my-service")
+                .filter(Filter.NOT_CONTAINS, "healthcheck")
+                .log((pretty, log) -> log.debug("Query:\n{}", pretty)))
+        .limit(50)
         .build();
 
 lokiTemplate.tailLogsStream(tailRequest, new TypeReference<LokiTailResponse<LogEvent>>() {})
-        .subscribe(event -> System.out.println(event));
+        .subscribe(System.out::println);
 ```
+
+Метод `.log(BiConsumer<String, Logger>)` позволяет вывести красиво отформатированный запрос в лог прямо
+в момент его построения — удобно при отладке.
+
+### Метрические запросы с функциями
+
+```java
+var request = LokiQueryDSL.queryRangeRequest()
+        .queryExpression(q -> q
+                .label("app", "my-service")
+                .fn(Fn.COUNTER_OVER_TIME.getFunctionName(),
+                        new QueryExpr("[5m]")))
+        .build();
+```
+
+Это даёт: `count_over_time({app="my-service"} [5m])`
 
 ### Запись логов
 
@@ -106,23 +141,28 @@ lokiTemplate.push(new PushLogRequest(...)).subscribe();
 
 ## LogQL DSL
 
-`LokiQueryDSL` предоставляет enum-ы и builder-ы, которые напрямую отображаются на конструкции LogQL:
+`LokiQueryBuilder` — центральный элемент DSL, доступный через `queryExpression(Consumer<LokiQueryBuilder>)`
+в каждом builder-е запроса. Он компонуется из набора вызовов:
 
-```java
-// Матчеры лейблов:  =  !=  =~  !~
-LabelMatcher.EQ, NOT_EQ, REG_EQ, REG_NOTEQ
+| Метод | LogQL-конструкция |
+|-------|------------------|
+| `.label("app", "svc")` | `{app="svc"}` |
+| `.label(new LabelEntry("level", LabelMatcher.REG_EQ, "err.*"))` | `{level=~"err.*"}` |
+| `.filter(Filter.CONTAINS, "text")` | `\|= "text"` |
+| `.filter(Filter.NOT_CONTAINS, "text")` | `!= "text"` |
+| `.filter(Regex.REG_CONTAINS, "pat")` | `\|~ "pat"` |
+| `.filter(Regex.REG_NOT_CONTAINS, "pat")` | `!~ "pat"` |
+| `.filter("pat")` | `\|~ "pat"` (shorthand) |
+| `.json()` | `\| json` |
+| `.fn("sum", inner)` | `sum(inner)` |
+| `.log(...)` | debug-вывод `.pretty()` в SLF4J |
 
-// Фильтры строк:  |=  !=
-Filter.CONTAINS, NOT_CONTAINS
+Каждый `Expression` (реализации: `FilterExpr`, `FnExpr`, `PipeExpr`, `QueryExpr`, `LabelSelector`, `LokiQuery`)
+имеет методы `.eval()` (компактная строка) и `.pretty()` (форматированный многострочный вывод).
 
-// Regex-фильтры:  |~  !~
-Regex.REG_CONTAINS, REG_NOT_CONTAINS
+Матчеры лейблов через `LabelMatcher`: `EQ` (`=`), `NOT_EQ` (`!=`), `REG_EQ` (`=~`), `REG_NOTEQ` (`!~`).
 
-// Метрические функции: sum, count_over_time, avg_over_time, without, …
-LokiQueryDSL.Fn.SUM, COUNTER_OVER_TIME, AVG_OVER_TIME, …
-```
-
-`LokiQuery` / `LabelSelector` / `FilterExpr` / `PipeExpr` / `FnExpr` — компонуемые объекты типа `Expression` с методами `.eval()` и `.pretty()`.
+Метрические функции через `LokiQueryDSL.Fn`: `SUM`, `COUNTER_OVER_TIME`, `AVG_OVER_TIME`, `WITHOUT`, `SUM_CTE`.
 
 ---
 
